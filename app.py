@@ -14,7 +14,6 @@ def init_db():
         cursor.execute('''CREATE TABLE IF NOT EXISTS properties (
                             id INTEGER PRIMARY KEY AUTOINCREMENT, 
                             name TEXT, price REAL, desc TEXT, status TEXT DEFAULT 'Available')''')
-        # UPDATED: Added billing_date column to customers table
         cursor.execute('''CREATE TABLE IF NOT EXISTS customers (
                             id INTEGER PRIMARY KEY AUTOINCREMENT, 
                             name TEXT, contact TEXT, billing_date TEXT, property_id INTEGER,
@@ -28,22 +27,22 @@ def init_db():
 
 class RentalHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
+        # FIX: Separate path from query parameters for routing
         clean_path = self.path.split('?')[0]
         
-        # API Routes
+        # API Routes - Checked first to handle data requests
         if clean_path == '/api/properties':
             self.send_json_data("SELECT * FROM properties")
             return
         elif clean_path == '/api/available':
             self.send_json_data("SELECT id, name FROM properties WHERE status = 'Available'")
             return
-        elif clean_path == '/api/get_property':
+        elif clean_path.startswith('/api/get_property'):
             params = parse_qs(self.path.split('?')[1])
             self.send_json_data(f"SELECT * FROM properties WHERE id = {params['id'][0]}")
             return
-        elif clean_path == '/api/get_rental_details':
+        elif clean_path.startswith('/api/get_rental_details'):
             params = parse_qs(self.path.split('?')[1])
-            # UPDATED: Added billing_date to the JOIN query
             query = f'''SELECT c.name, c.contact, p.name, p.price, p.desc, p.status, c.billing_date 
                        FROM customers c 
                        JOIN properties p ON c.property_id = p.id 
@@ -51,15 +50,18 @@ class RentalHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json_data(query)
             return
         elif clean_path == '/api/report':
-            # UPDATED: Added billing_date to the report data
+            # FIX: Index 4 is Date, Index 5 is ID for JS mapping
             query = '''SELECT p.name, c.contact, p.price, c.name, c.billing_date, c.id 
                        FROM properties p JOIN customers c ON p.id = c.property_id'''
             self.send_json_data(query)
             return
 
         # HTML Routing
-        if clean_path == '/': self.path = '/templates/index.html'
-        elif clean_path.endswith('.html'): self.path = f'/templates{clean_path}'
+        if clean_path == '/': 
+            self.path = '/templates/index.html'
+        elif clean_path.endswith('.html'): 
+            self.path = f'/templates{clean_path}'
+        
         return super().do_GET()
 
     def send_json_data(self, query):
@@ -78,7 +80,6 @@ class RentalHandler(http.server.SimpleHTTPRequestHandler):
         post_data = parse_qs(self.rfile.read(content_length).decode('utf-8'))
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
-
         if self.path == '/add_property':
             cursor.execute("INSERT INTO properties (name, price, desc) VALUES (?, ?, ?)",
                            (post_data['name'][0], post_data['price'][0], post_data['desc'][0]))
@@ -91,11 +92,9 @@ class RentalHandler(http.server.SimpleHTTPRequestHandler):
             cursor.execute("DELETE FROM properties WHERE id = ?", (p_id,))
         elif self.path == '/add_customer':
             p_id = post_data['property_id'][0]
-            # UPDATED: Capture billing_date from form
             cursor.execute("INSERT INTO customers (name, contact, billing_date, property_id) VALUES (?, ?, ?, ?)",
                            (post_data['cname'][0], post_data['contact'][0], post_data['billing_date'][0], p_id))
             cursor.execute("UPDATE properties SET status = 'Rented' WHERE id = ?", (p_id,))
-
         conn.commit()
         conn.close()
         self.send_response(303)
