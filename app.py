@@ -27,12 +27,13 @@ def init_db():
 
 class RentalHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        # FIX: Strip query parameters to find the correct HTML file in templates
+        # FIX: Strip query parameters to find the correct HTML file in templates folder
         clean_path = self.path.split('?')[0]
         
         if clean_path == '/': 
             self.path = '/templates/index.html'
         elif clean_path.endswith('.html'): 
+            # This ensures /edit_property.html?id=1 correctly maps to /templates/edit_property.html
             self.path = f'/templates{clean_path}'
         
         # API Routes
@@ -41,10 +42,11 @@ class RentalHandler(http.server.SimpleHTTPRequestHandler):
         elif self.path == '/api/available':
             self.send_json_data("SELECT id, name FROM properties WHERE status = 'Available'")
         elif self.path.startswith('/api/get_property'):
+            # Parse query specifically for the database query
             params = parse_qs(self.path.split('?')[1])
             self.send_json_data(f"SELECT * FROM properties WHERE id = {params['id'][0]}")
         elif self.path == '/api/report':
-            # FIX: Ensure customer ID is included in the SELECT for the View action
+            # Included c.id as the 5th column (index 4) for the View action
             query = '''SELECT p.name, c.contact, p.price, c.name, c.id 
                        FROM properties p JOIN customers c ON p.id = c.property_id'''
             self.send_json_data(query)

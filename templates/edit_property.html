@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><link rel="stylesheet" href="/static/css/style.css"></head>
+<body>
+    <nav><a href="/property_list.html">Cancel</a></nav>
+    <div class="container">
+        <h2>Edit Property</h2>
+        <form action="/update_property" method="POST">
+            <input type="hidden" name="id" id="pId">
+            <input type="text" name="name" id="pName" placeholder="Property Name" required>
+            <input type="number" name="price" id="pPrice" placeholder="Price" required>
+            <textarea name="desc" id="pDesc" placeholder="Description"></textarea>
+            <button type="submit" style="background:#3498db;">Update Property</button>
+        </form>
+    </div>
+    <script>
+        const id = new URLSearchParams(window.location.search).get('id');
+        fetch(`/api/get_property?id=${id}`).then(res => res.json()).then(data => {
+            const p = data[0];
+            document.getElementById('pId').value = p[0];
+            document.getElementById('pName').value = p[1];
+            document.getElementById('pPrice').value = p[2];
+            document.getElementById('pDesc').value = p[3];
+        });
+    </script>
+    <footer><p>Build by XYZ</p></footer>
+</body>
+</html>
