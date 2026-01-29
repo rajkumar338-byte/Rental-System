@@ -3,9 +3,10 @@ import socketserver
 import sqlite3
 import json
 import sys
+import os
 from urllib.parse import parse_qs
 
-PORT = 8000
+PORT = int(os.environ.get('PORT', 8000))
 
 def init_db():
     try:
