@@ -24,8 +24,8 @@ function loadData(url, tableId, isReport = false) {
                 if (tableId === "propTable") {
                     tr += `<td><a href="/edit_property.html?id=${row[0]}" class="edit-btn">Edit</a></td>`;
                 } else if (tableId === "reportTable") {
-                    // FIX: row[5] is the Customer ID from the SQL query
-                    tr += `<td><button onclick="showDetails(${row[5]})" class="edit-btn" style="background:#27ae60;">View</button></td>`;
+                    // Navigate to rental details page instead of showing alert
+                    tr += `<td><a href="/rental_details.html?id=${row[5]}" class="edit-btn" style="background:#27ae60;">View</a></td>`;
                 }
                 tr += "</tr>";
                 tbody.innerHTML += tr;
