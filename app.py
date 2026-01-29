@@ -36,26 +36,38 @@ class RentalHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json_data("SELECT * FROM properties", [])
             return
         elif clean_path == '/api/available':
-            self.send_json_data("SELECT id, name FROM properties WHERE status = 'Available'")
+            self.send_json_data("SELECT id, name FROM properties WHERE status = 'Available'", [])
             return
         elif clean_path.startswith('/api/get_property'):
-            params = parse_qs(self.path.split('?')[1])
-            self.send_json_data(f"SELECT * FROM properties WHERE id = {params['id'][0]}")
+            try:
+                params = parse_qs(self.path.split('?')[1])
+                prop_id = params.get('id', [None])[0]
+                if prop_id:
+                    self.send_json_data("SELECT * FROM properties WHERE id = ?", [prop_id])
+                else:
+                    self.send_error_response(400, "Missing property ID")
+            except Exception as e:
+                self.send_error_response(400, str(e))
             return
         elif clean_path.startswith('/api/get_rental_details'):
-            params = parse_qs(self.path.split('?')[1])
-            # JOIN query to get every detail about the tenant and their property
-            query = f'''SELECT c.name, c.contact, p.name, p.price, p.desc, p.status, c.billing_date 
-                       FROM customers c 
-                       JOIN properties p ON c.property_id = p.id 
-                       WHERE c.id = {params['id'][0]}'''
-            self.send_json_data(query)
+            try:
+                params = parse_qs(self.path.split('?')[1])
+                cust_id = params.get('id', [None])[0]
+                if cust_id:
+                    query = '''SELECT c.name, c.contact, p.name, p.price, p.desc, p.status, c.billing_date 
+                               FROM customers c 
+                               JOIN properties p ON c.property_id = p.id 
+                               WHERE c.id = ?'''
+                    self.send_json_data(query, [cust_id])
+                else:
+                    self.send_error_response(400, "Missing customer ID")
+            except Exception as e:
+                self.send_error_response(400, str(e))
             return
         elif clean_path == '/api/report':
-            # Data order: PropName(0), Contact(1), Price(2), CustName(3), Date(4), CustID(5)
             query = '''SELECT p.name, c.contact, p.price, c.name, c.billing_date, c.id 
                        FROM properties p JOIN customers c ON p.id = c.property_id'''
-            self.send_json_data(query)
+            self.send_json_data(query, [])
             return
 
         # HTML Routing - Ensures .html?id=1 maps to the file correctly
@@ -66,16 +78,28 @@ class RentalHandler(http.server.SimpleHTTPRequestHandler):
         
         return super().do_GET()
 
-    def send_json_data(self, query):
-        conn = sqlite3.connect('database.db')
-        cursor = conn.cursor()
-        cursor.execute(query)
-        data = cursor.fetchall()
-        conn.close()
-        self.send_response(200)
+    def send_json_data(self, query, params=[]):
+        try:
+            conn = sqlite3.connect('database.db')
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            data = cursor.fetchall()
+            conn.close()
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(data).encode())
+        except Exception as e:
+            self.send_error_response(500, str(e))
+
+    def send_error_response(self, code, message):
+        """Send a JSON error response"""
+        self.send_response(code)
         self.send_header('Content-type', 'application/json')
+        error_data = json.dumps({"error": message}).encode()
+        self.send_header('Content-Length', str(len(error_data)))
         self.end_headers()
-        self.wfile.write(json.dumps(data).encode())
+        self.wfile.write(error_data)
 
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
