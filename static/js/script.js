@@ -1,7 +1,7 @@
 function loadData(url, tableId, isReport = false) {
     fetch(url)
         .then(res => {
-            if (!res.ok) throw new Error('API Error');
+            if (!res.ok) throw new Error('API Error ' + res.status);
             return res.json();
         })
         .then(data => {
@@ -9,7 +9,7 @@ function loadData(url, tableId, isReport = false) {
             tbody.innerHTML = "";
             data.forEach(row => {
                 let tr = "<tr>";
-                // Report displays 5 columns (index 0-4), Property List displays all
+                // Report shows 5 text columns (index 0,1,2,3,4)
                 let displayLimit = isReport ? 5 : row.length;
 
                 for (let i = 0; i < displayLimit; i++) {
