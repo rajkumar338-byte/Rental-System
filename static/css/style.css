@@ -1,0 +1,15 @@
+body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; color: #333; }
+nav { background: #2c3e50; padding: 15px; text-align: center; }
+nav a { color: white; margin: 0 15px; text-decoration: none; font-weight: bold; }
+.container { padding: 30px; max-width: 1000px; margin: auto; min-height: 70vh; }
+table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
+th { background: #34495e; color: white; }
+form { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+input, select, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+button { background: #27ae60; color: white; padding: 12px; border: none; cursor: pointer; width: 100%; border-radius: 4px; font-size: 16px; }
+button:hover { background: #219150; }
+.rented { color: #e74c3c; font-weight: bold; }
+.available { color: #27ae60; font-weight: bold; }
+.edit-btn { background: #3498db; color: white; padding: 5px 10px; text-decoration: none; border-radius: 4px; font-size: 13px; }
+footer { background: #2c3e50; color: white; text-align: center; padding: 20px 0; margin-top: 50px; }

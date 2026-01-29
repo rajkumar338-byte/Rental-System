@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><link rel="stylesheet" href="/static/css/style.css"></head>
+<body>
+    <nav><a href="/">Back Home</a></nav>
+    <div class="container">
+        <h2>Rent Property</h2>
+        <form action="/add_customer" method="POST">
+            <input type="text" name="cname" placeholder="Customer Name" required>
+            <input type="text" name="contact" placeholder="Contact Number" required>
+            <select name="property_id" id="propSelect" required>
+                <option value="">-- Select Available Property --</option>
+            </select>
+            <button type="submit">Assign Tenant</button>
+        </form>
+    </div>
+    <script>
+        fetch('/api/available').then(res => res.json()).then(data => {
+            const select = document.getElementById('propSelect');
+            data.forEach(p => { select.innerHTML += `<option value="${p[0]}">${p[1]}</option>`; });
+        });
+    </script>
+    <footer><p>Build by XYZ</p></footer>
+</body>
+</html>

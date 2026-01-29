@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head><link rel="stylesheet" href="/static/css/style.css"></head>
+<body>
+    <nav><a href="/">Back Home</a></nav>
+    <div class="container">
+        <h2>Add Property</h2>
+        <form action="/add_property" method="POST">
+            <input type="text" name="name" placeholder="Property Name" required>
+            <input type="number" name="price" placeholder="Monthly Price" required>
+            <textarea name="desc" placeholder="Description"></textarea>
+            <button type="submit">Save Property</button>
+        </form>
+    </div>
+    <footer><p>Build by XYZ</p></footer>
+</body>
+</html>
