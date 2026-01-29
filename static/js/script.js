@@ -6,7 +6,7 @@ function loadData(url, tableId, isReport = false) {
             tbody.innerHTML = "";
             data.forEach(row => {
                 let tr = "<tr>";
-                // Report now shows 5 text columns, Property list shows all 5
+                // Report now shows 5 text columns (Prop Name, Contact, Price, Cust Name, Billing Date)
                 let displayLimit = isReport ? 5 : row.length;
 
                 for (let i = 0; i < displayLimit; i++) {
@@ -21,7 +21,7 @@ function loadData(url, tableId, isReport = false) {
                 if (tableId === "propTable") {
                     tr += `<td><a href="/edit_property.html?id=${row[0]}" class="edit-btn">Edit</a></td>`;
                 } else if (tableId === "reportTable") {
-                    // row[5] is now the hidden Customer ID
+                    // row[5] is now the hidden Customer ID used for the View function
                     tr += `<td><button onclick="showDetails(${row[5]})" class="edit-btn" style="background:#27ae60;">View</button></td>`;
                 }
                 tr += "</tr>";

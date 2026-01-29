@@ -8,6 +8,10 @@
         <form action="/add_customer" method="POST">
             <input type="text" name="cname" placeholder="Customer Name" required>
             <input type="text" name="contact" placeholder="Contact Number" required>
+            
+            <label for="billing_date">Billing Date:</label>
+            <input type="date" name="billing_date" id="billing_date" required>
+            
             <select name="property_id" id="propSelect" required>
                 <option value="">-- Select Available Property --</option>
             </select>
@@ -19,6 +23,9 @@
             const select = document.getElementById('propSelect');
             data.forEach(p => { select.innerHTML += `<option value="${p[0]}">${p[1]}</option>`; });
         });
+        
+        // Auto-set today's date
+        document.getElementById('billing_date').valueAsDate = new Date();
     </script>
     <footer><p>Build by XYZ</p></footer>
 </body>
