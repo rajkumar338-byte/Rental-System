@@ -4,6 +4,7 @@ import sqlite3
 import json
 import sys
 from urllib.parse import parse_qs
+from datetime import datetime
 
 PORT = 8000
 
@@ -14,9 +15,10 @@ def init_db():
         cursor.execute('''CREATE TABLE IF NOT EXISTS properties (
                             id INTEGER PRIMARY KEY AUTOINCREMENT, 
                             name TEXT, price REAL, desc TEXT, status TEXT DEFAULT 'Available')''')
+        # ADDED: billing_date column
         cursor.execute('''CREATE TABLE IF NOT EXISTS customers (
                             id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                            name TEXT, contact TEXT, property_id INTEGER,
+                            name TEXT, contact TEXT, billing_date TEXT, property_id INTEGER,
                             FOREIGN KEY(property_id) REFERENCES properties(id))''')
         conn.commit()
         conn.close()
@@ -27,31 +29,37 @@ def init_db():
 
 class RentalHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        # FIX: Strip query parameters to find the correct HTML file in templates folder
         clean_path = self.path.split('?')[0]
         
-        if clean_path == '/': 
-            self.path = '/templates/index.html'
-        elif clean_path.endswith('.html'): 
-            # This ensures /edit_property.html?id=1 correctly maps to /templates/edit_property.html
-            self.path = f'/templates{clean_path}'
-        
-        # API Routes
-        if self.path == '/api/properties':
+        if clean_path == '/api/properties':
             self.send_json_data("SELECT * FROM properties")
-        elif self.path == '/api/available':
+            return
+        elif clean_path == '/api/available':
             self.send_json_data("SELECT id, name FROM properties WHERE status = 'Available'")
-        elif self.path.startswith('/api/get_property'):
-            # Parse query specifically for the database query
+            return
+        elif clean_path == '/api/get_property':
             params = parse_qs(self.path.split('?')[1])
             self.send_json_data(f"SELECT * FROM properties WHERE id = {params['id'][0]}")
-        elif self.path == '/api/report':
-            # Included c.id as the 5th column (index 4) for the View action
-            query = '''SELECT p.name, c.contact, p.price, c.name, c.id 
+            return
+        elif clean_path == '/api/get_rental_details':
+            params = parse_qs(self.path.split('?')[1])
+            # FETCHED: billing_date in the join
+            query = f'''SELECT c.name, c.contact, p.name, p.price, p.desc, p.status, c.billing_date 
+                       FROM customers c 
+                       JOIN properties p ON c.property_id = p.id 
+                       WHERE c.id = {params['id'][0]}'''
+            self.send_json_data(query)
+            return
+        elif clean_path == '/api/report':
+            # UPDATED: Added billing_date to report list
+            query = '''SELECT p.name, c.contact, p.price, c.name, c.billing_date, c.id 
                        FROM properties p JOIN customers c ON p.id = c.property_id'''
             self.send_json_data(query)
-        else:
-            return super().do_GET()
+            return
+
+        if clean_path == '/': self.path = '/templates/index.html'
+        elif clean_path.endswith('.html'): self.path = f'/templates{clean_path}'
+        return super().do_GET()
 
     def send_json_data(self, query):
         conn = sqlite3.connect('database.db')
@@ -76,10 +84,17 @@ class RentalHandler(http.server.SimpleHTTPRequestHandler):
         elif self.path == '/update_property':
             cursor.execute("UPDATE properties SET name=?, price=?, desc=? WHERE id=?",
                            (post_data['name'][0], post_data['price'][0], post_data['desc'][0], post_data['id'][0]))
+        elif self.path == '/delete_property':
+            # NEW: Delete property logic
+            p_id = post_data['id'][0]
+            cursor.execute("DELETE FROM customers WHERE property_id = ?", (p_id,))
+            cursor.execute("DELETE FROM properties WHERE id = ?", (p_id,))
         elif self.path == '/add_customer':
             p_id = post_data['property_id'][0]
-            cursor.execute("INSERT INTO customers (name, contact, property_id) VALUES (?, ?, ?)",
-                           (post_data['cname'][0], post_data['contact'][0], p_id))
+            # AUTOMATIC: Sets current date as billing date
+            today = datetime.now().strftime("%Y-%m-%d")
+            cursor.execute("INSERT INTO customers (name, contact, billing_date, property_id) VALUES (?, ?, ?, ?)",
+                           (post_data['cname'][0], post_data['contact'][0], today, p_id))
             cursor.execute("UPDATE properties SET status = 'Rented' WHERE id = ?", (p_id,))
 
         conn.commit()

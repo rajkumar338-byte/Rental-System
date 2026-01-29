@@ -6,13 +6,11 @@ function loadData(url, tableId, isReport = false) {
             tbody.innerHTML = "";
             data.forEach(row => {
                 let tr = "<tr>";
-                
-                // For Report, display only the first 4 columns (Name, Contact, Price, Customer)
-                // The 5th column (row[4]) is the ID used for the button
-                let displayLimit = isReport ? 4 : row.length;
+                // Report now shows 5 text columns, Property list shows all 5
+                let displayLimit = isReport ? 5 : row.length;
 
                 for (let i = 0; i < displayLimit; i++) {
-                    if (!isReport && i === 4) { // Status column color logic
+                    if (!isReport && i === 4) { 
                         const style = row[i] === 'Rented' ? 'rented' : 'available';
                         tr += `<td class="${style}">${row[i]}</td>`;
                     } else {
@@ -20,17 +18,37 @@ function loadData(url, tableId, isReport = false) {
                     }
                 }
 
-                // Action Column Logic
                 if (tableId === "propTable") {
-                    // row[0] is the Property ID from the DB
                     tr += `<td><a href="/edit_property.html?id=${row[0]}" class="edit-btn">Edit</a></td>`;
                 } else if (tableId === "reportTable") {
-                    // row[4] is the Customer ID added to the JOIN query in app.py
-                    tr += `<td><button onclick="alert('Viewing Customer ID: ' + ${row[4]})" class="edit-btn" style="background:#27ae60; border:none; color:white; padding:5px 10px; cursor:pointer; border-radius:4px;">View</button></td>`;
+                    // row[5] is now the hidden Customer ID
+                    tr += `<td><button onclick="showDetails(${row[5]})" class="edit-btn" style="background:#27ae60;">View</button></td>`;
                 }
-
                 tr += "</tr>";
                 tbody.innerHTML += tr;
             });
+        });
+}
+
+function showDetails(customerId) {
+    fetch(`/api/get_rental_details?id=${customerId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length > 0) {
+                const d = data[0];
+                const details = `
+--- CUSTOMER DETAILS ---
+Name: ${d[0]}
+Contact: ${d[1]}
+Billing Date: ${d[6]}
+
+--- PROPERTY DETAILS ---
+Property Name: ${d[2]}
+Rent Price: ${d[3]}
+Description: ${d[4]}
+Status: ${d[5]}
+                `;
+                alert(details);
+            }
         });
 }

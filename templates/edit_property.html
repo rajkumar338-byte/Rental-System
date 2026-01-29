@@ -10,7 +10,12 @@
             <input type="text" name="name" id="pName" placeholder="Property Name" required>
             <input type="number" name="price" id="pPrice" placeholder="Price" required>
             <textarea name="desc" id="pDesc" placeholder="Description"></textarea>
-            <button type="submit" style="background:#3498db;">Update Property</button>
+            <button type="submit" style="background:#3498db; margin-bottom: 10px;">Update Property</button>
+        </form>
+        
+        <form action="/delete_property" method="POST" onsubmit="return confirm('Delete this property and all its rental records?')">
+            <input type="hidden" name="id" id="pIdDel">
+            <button type="submit" style="background:#e74c3c;">Delete Property</button>
         </form>
     </div>
     <script>
@@ -18,6 +23,7 @@
         fetch(`/api/get_property?id=${id}`).then(res => res.json()).then(data => {
             const p = data[0];
             document.getElementById('pId').value = p[0];
+            document.getElementById('pIdDel').value = p[0];
             document.getElementById('pName').value = p[1];
             document.getElementById('pPrice').value = p[2];
             document.getElementById('pDesc').value = p[3];
