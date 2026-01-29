@@ -13,7 +13,7 @@
             <button type="submit" style="background:#3498db; margin-bottom: 10px;">Update Property</button>
         </form>
         
-        <form action="/delete_property" method="POST">
+        <form action="/delete_property" method="POST" onsubmit="return confirm('Delete this property and all linked records?')">
             <input type="hidden" name="id" id="pIdDel">
             <button type="submit" style="background:#e74c3c;">Delete Property</button>
         </form>

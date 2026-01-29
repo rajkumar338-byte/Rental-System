@@ -8,72 +8,22 @@
     <nav><a href="/">Back Home</a></nav>
     <div class="container">
         <h2>Rent Property</h2>
-        <form id="rentForm" action="/add_customer" method="POST" onsubmit="return validateForm()">
-            <input type="text" name="cname" id="cname" placeholder="Customer Name" required>
-            <input type="text" name="contact" id="contact" placeholder="Contact Number" required>
+        <form action="/add_customer" method="POST">
+            <input type="text" name="cname" placeholder="Customer Name" required>
+            <input type="text" name="contact" placeholder="Contact Number" required>
             <label for="billing_date">Billing Date:</label>
             <input type="date" name="billing_date" id="billing_date" required>
             <select name="property_id" id="propSelect" required>
-                <option value="">-- Loading Available Properties --</option>
+                <option value="">-- Select Available Property --</option>
             </select>
-            <button type="submit" id="submitBtn">Assign Tenant</button>
-            <div id="errorMsg" style="color: red; margin-top: 10px; display: none;"></div>
+            <button type="submit">Assign Tenant</button>
         </form>
     </div>
     <script>
-        function validateForm() {
-            const cname = document.getElementById('cname').value.trim();
-            const contact = document.getElementById('contact').value.trim();
-            const billing_date = document.getElementById('billing_date').value;
-            const property_id = document.getElementById('propSelect').value;
-            const errorMsg = document.getElementById('errorMsg');
-            
-            errorMsg.style.display = 'none';
-            errorMsg.innerHTML = '';
-            
-            if (!cname) {
-                errorMsg.innerHTML = 'Customer name is required.';
-                errorMsg.style.display = 'block';
-                return false;
-            }
-            if (!contact) {
-                errorMsg.innerHTML = 'Contact number is required.';
-                errorMsg.style.display = 'block';
-                return false;
-            }
-            if (!billing_date) {
-                errorMsg.innerHTML = 'Billing date is required.';
-                errorMsg.style.display = 'block';
-                return false;
-            }
-            if (!property_id) {
-                errorMsg.innerHTML = 'Please select a property.';
-                errorMsg.style.display = 'block';
-                return false;
-            }
-            return true;
-        }
-
-        fetch('/api/available')
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to load properties');
-                return res.json();
-            })
-            .then(data => {
-                const select = document.getElementById('propSelect');
-                if (data.length === 0) {
-                    select.innerHTML = '<option value="">-- No Available Properties --</option>';
-                    document.getElementById('submitBtn').disabled = true;
-                } else {
-                    select.innerHTML = '<option value="">-- Select Available Property --</option>';
-                    data.forEach(p => { select.innerHTML += `<option value="${p[0]}">${p[1]}</option>`; });
-                }
-            })
-            .catch(err => {
-                console.error("Error loading properties:", err);
-                document.getElementById('propSelect').innerHTML = '<option value="">-- Error Loading Properties --</option>';
-                document.getElementById('submitBtn').disabled = true;
-            });
+        fetch('/api/available').then(res => res.json()).then(data => {
+            const select = document.getElementById('propSelect');
+            data.forEach(p => { select.innerHTML += `<option value="${p[0]}">${p[1]}</option>`; });
+        });
         document.getElementById('billing_date').valueAsDate = new Date();
     </script>
     <footer><p>Build by Raj Kumar</p></footer>
